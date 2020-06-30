@@ -37,7 +37,7 @@
         "osProfile": {
           "adminPassword": "[parameters('password-for-dev-jan')]",
           "adminUsername": "jan",
-          "computerName": "dev-jan2"
+          "computerName": "dev-jan"
         },
         "storageProfile": {
           "dataDisks": [
