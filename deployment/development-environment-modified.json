@@ -1,0 +1,192 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "outputs": {},
+  "parameters": {
+    "password-for-dev-jan": {
+      "type": "securestring"
+    },
+    "publicCertificateThumbprint": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-10-01",
+      "dependsOn": [
+        "dev-jan-nic"
+      ],
+      "location": "westeurope",
+      "name": "dev-jan",
+      "properties": {
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": false
+          }
+        },
+        "hardwareProfile": {
+          "vmSize": "Standard_F8s_v2"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces','dev-jan-nic')]"
+            }
+          ]
+        },
+        "osProfile": {
+          "adminPassword": "[parameters('password-for-dev-jan')]",
+          "adminUsername": "jan",
+          "computerName": "dev-jan"
+        },
+        "storageProfile": {
+          "dataDisks": [
+            {
+              "createOption": "Empty",
+              "diskSizeGB": 512,
+              "lun": 0,
+              "managedDisk": {
+                "storageAccountType": "StandardSSD_LRS"
+              },
+              "name": "dev-jan-datadisk-0"
+            }
+          ],
+          "imageReference": {
+            "offer": "WindowsServer",
+            "publisher": "MicrosoftWindowsServer",
+            "sku": "2019-Datacenter",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "diskSizeGB": 128,
+            "managedDisk": {
+              "storageAccountType": "StandardSSD_LRS"
+            },
+            "name": "dev-jan-osdisk"
+          }
+        }
+      },
+      "type": "Microsoft.Compute/virtualMachines"
+    },
+    {
+      "apiVersion": "2018-11-01",
+      "dependsOn": [
+        "dev-jan-vnet"
+      ],
+      "location": "westeurope",
+      "name": "dev-jan-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'dev-jan-vnet', 'dev-jan-subnet')]"
+              }
+            }
+          }
+        ]
+      },
+      "type": "Microsoft.Network/networkInterfaces"
+    },
+    {
+      "apiVersion": "2018-11-01",
+      "location": "westeurope",
+      "name": "dev-jan-vnet",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "dev-jan-subnet",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24",
+              "delegations": []
+            }
+          },
+          {
+            "name": "GatewaySubnet",
+            "properties": {
+              "addressPrefix": "10.0.2.0/24",
+              "delegations": [],
+              "privateEndpointNetworkPolicies": "Enabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+          }
+        ]
+      },
+      "type": "Microsoft.Network/virtualNetworks"
+    },
+    {
+      "apiVersion": "2018-11-01",
+      "location": "westeurope",
+      "name": "dev-jan-ip",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      },
+      "type": "Microsoft.Network/publicIPAddresses"
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworkGateways",
+      "apiVersion": "2020-04-01",
+      "name": "dev-jan-gateway",
+      "location": "westeurope",
+      "dependsOn": [
+        "dev-jan-vnet",
+        "dev-jan-ip"
+      ],
+      "properties": {
+        "enablePrivateIpAddress": false,
+        "ipConfigurations": [
+          {
+            "name": "default",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses','dev-jan-ip')]"
+              },
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'dev-jan-vnet', 'GatewaySubnet')]"
+              }
+            }
+          }
+        ],
+        "sku": {
+          "name": "Basic",
+          "tier": "Basic"
+        },
+        "gatewayType": "Vpn",
+        "vpnType": "RouteBased",
+        "enableBgp": false,
+        "activeActive": false,
+        "vpnClientConfiguration": {
+          "vpnClientAddressPool": {
+            "addressPrefixes": [
+              "172.16.0.0/24"
+            ]
+          },
+          "vpnClientProtocols": [
+            "SSTP"
+          ],
+          "vpnClientRootCertificates": [
+            {
+              "name": "RootJanHome",
+              "properties": {
+                "publicCertData": "[parameters('publicCertificateThumbprint')]"
+              }
+            }
+          ],
+          "vpnClientRevokedCertificates": [],
+          "radiusServers": [],
+          "vpnClientIpsecPolicies": []
+        },
+        "vpnGatewayGeneration": "Generation1"
+      }
+    }
+  ]
+}
