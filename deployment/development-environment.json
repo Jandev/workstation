@@ -25,7 +25,7 @@
           }
         },
         "hardwareProfile": {
-          "vmSize": "Standard_B12ms"
+          "vmSize": "Standard_D8ds_v4"
         },
         "networkProfile": {
           "networkInterfaces": [
