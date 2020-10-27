@@ -229,7 +229,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces','dev-jan-nic')]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces','stream-jan-nic')]"
             }
           ]
         },
@@ -253,7 +253,7 @@
           "imageReference": {
             "publisher": "MicrosoftWindowsDesktop",
             "offer": "Windows-10",
-            "sku": "20h2-pro-g2",
+            "sku": "20h2-pro",
             "version": "latest"
           },
           "osDisk": {
