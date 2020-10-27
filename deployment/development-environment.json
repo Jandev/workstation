@@ -187,6 +187,86 @@
         },
         "vpnGatewayGeneration": "Generation1"
       }
+    },
+    {
+      "apiVersion": "2018-11-01",
+      "dependsOn": [
+        "dev-jan-vnet"
+      ],
+      "location": "westeurope",
+      "name": "stream-jan-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig2",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'dev-jan-vnet', 'dev-jan-subnet')]"
+              }
+            }
+          }
+        ]
+      },
+      "type": "Microsoft.Network/networkInterfaces"
+    },
+    {
+      "apiVersion": "2018-10-01",
+      "dependsOn": [
+        "stream-jan-nic"
+      ],
+      "location": "westeurope",
+      "name": "stream-jan",
+      "properties": {
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": false
+          }
+        },
+        "hardwareProfile": {
+          "vmSize": "Standard_NV6"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces','dev-jan-nic')]"
+            }
+          ]
+        },
+        "osProfile": {
+          "adminPassword": "[parameters('password-for-dev-jan')]",
+          "adminUsername": "jan",
+          "computerName": "stream-jan"
+        },
+        "storageProfile": {
+          "dataDisks": [
+            {
+              "createOption": "Empty",
+              "diskSizeGB": 512,
+              "lun": 0,
+              "managedDisk": {
+                "storageAccountType": "StandardSSD_LRS"
+              },
+              "name": "stream-jan-datadisk-0"
+            }
+          ],
+          "imageReference": {
+            "publisher": "MicrosoftWindowsDesktop",
+            "offer": "Windows-10",
+            "sku": "20h2-pro-g2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "diskSizeGB": 256,
+            "managedDisk": {
+              "storageAccountType": "StandardSSD_LRS"
+            },
+            "name": "stream-jan-osdisk"
+          }
+        }
+      },
+      "type": "Microsoft.Compute/virtualMachines"
     }
   ]
 }
